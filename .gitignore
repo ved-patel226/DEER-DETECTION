@@ -1,3 +1,5 @@
 runs
 deer_database
 yolo11n.pt
+deer/__pycache__
+.env
