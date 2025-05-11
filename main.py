@@ -10,7 +10,7 @@ def get_emails():
     return ast.literal_eval(os.environ["EMAILS"])
 
 
-model = YOLO("runs/train/deer_database3/weights/best_ncnn_model", task="detect")
+model = YOLO("./best_ncnn_model", task="detect")
 
 # Initialize the camera
 camera = picamera2.Picamera2()
@@ -21,6 +21,9 @@ camera.start()
 # Give the camera a moment to initialize
 time.sleep(2)
 
+FRAME_EMAIL_DELAY = 60
+current_frame_delay = (True, 0)
+
 while True:
     # Capture an image
     image = camera.capture_array()
@@ -30,7 +33,9 @@ while True:
 
     # Check if anything was detected
     if len(results[0].boxes) > 0:
-        print("WOAH")
+        if current_frame_delay[0] != True:
+            print("WOAH")
 
-    # Small delay to avoid high CPU usage
-    time.sleep(5)
+        current_frame_delay[0] = True
+    else:
+        print("NOT WOAH")
