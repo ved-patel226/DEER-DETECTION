@@ -10,7 +10,7 @@ def get_emails():
     return ast.literal_eval(os.environ["EMAILS"])
 
 
-model = YOLO("./best_ncnn_model", task="detect")
+model = YOLO("./deer_ncnn_model", task="detect")
 
 # Initialize the camera
 camera = picamera2.Picamera2()
