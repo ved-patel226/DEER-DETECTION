@@ -22,7 +22,6 @@ camera.start()
 time.sleep(2)
 
 FRAME_EMAIL_DELAY = 60
-current_frame_delay = (True, 0)
 
 while True:
     # Capture an image
@@ -33,9 +32,6 @@ while True:
 
     # Check if anything was detected
     if len(results[0].boxes) > 0:
-        if current_frame_delay[0] != True:
-            print("WOAH")
-
-        current_frame_delay[0] = True
+        print("WOAH")
     else:
         print("NOT WOAH")
