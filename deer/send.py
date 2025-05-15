@@ -4,6 +4,9 @@ from email.mime.multipart import MIMEMultipart
 import os
 import time
 from email.mime.image import MIMEImage
+import cv2
+import numpy as np
+import uuid
 
 
 def send_email(
@@ -13,8 +16,8 @@ def send_email(
     smtp_server="smtp.gmail.com",
     smtp_port=587,
     username="talk2ved11@gmail.com",
-    password=os.environ["EMAIL_APP_PASS"] if "EMAIL_APP_PASS" in os.environ else "",
-    image_path=None,
+    password=os.environ.get("EMAIL_APP_PASS", ""),
+    image=None,
 ):
     if isinstance(to_email, str):
         to_email = [to_email]
@@ -29,14 +32,21 @@ def send_email(
     msg.attach(MIMEText(f"<h1>DEER DETECTED @ {user_friendly_time}</h1>", "html"))
 
     # Attach image if provided
-    if image_path and os.path.isfile(image_path):
-        with open(image_path, "rb") as img_file:
-            img = MIMEImage(img_file.read())
-            img.add_header(
-                "Content-Disposition",
-                "attachment",
-                filename=os.path.basename(image_path),
-            )
+    if image is not None:
+        # Convert numpy array to image bytes
+        if isinstance(image, np.ndarray):
+            # Convert to BGR format if needed
+            if len(image.shape) == 3 and image.shape[2] == 3:
+                image_to_send = cv2.imencode(".jpg", image)[1].tobytes()
+            else:
+                print(
+                    "Warning: Image format not recognized, attempting to encode anyway"
+                )
+                image_to_send = cv2.imencode(".jpg", image)[1].tobytes()
+
+            img = MIMEImage(image_to_send)
+            filename = f"deer_detected_{int(time.time())}.jpg"
+            img.add_header("Content-Disposition", "attachment", filename=filename)
             msg.attach(img)
 
     try:
@@ -51,7 +61,6 @@ def send_email(
 
 def main() -> None:
     send_email(
-        "test123",
         "vedhehe292@gmail.com",
     )
 
