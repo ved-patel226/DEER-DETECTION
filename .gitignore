@@ -5,3 +5,4 @@ deer/__pycache__
 .env
 best.pt
 images
+images_detected
