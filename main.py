@@ -58,7 +58,7 @@ while True:
 
         print(
             f"Detection {consecutive_detections}/{DETECTION_THRESHOLD}"
-            if (current_time - last_email_time) > COOLDOWN_PERIOD
+            if (current_time - last_email_time) < COOLDOWN_PERIOD
             else "Detected, but cool-down period active"
         )
 
