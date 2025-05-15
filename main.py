@@ -13,22 +13,15 @@ def get_emails():
     return ast.literal_eval(os.environ["EMAILS"])
 
 
-def save_image(image, detection=False):
-    # Create images directory if it doesn't exist
-    os.makedirs("images", exist_ok=True)
+def save_image(image):
+    filename = f"image.jpg"
 
-    # Generate filename with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    detection_status = "deer" if detection else "frame"
-    filename = f"images/{detection_status}_{timestamp}.jpg"
-
-    # Save the image
     cv2.imwrite(filename, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
     print(f"Image saved as {filename}")
     return filename
 
 
-model = YOLO("./deer_ncnn_model", task="detect")
+model = YOLO("./deer_ncnn_model", task="detect", verbose=False)
 
 # Initialize the camera
 camera = picamera2.Picamera2()
@@ -55,25 +48,30 @@ last_email_time = 0
 while True:
     # Capture an image
     image = camera.capture_array()
-    # Save the current frame to image.png
-    cv2.imwrite("image.png", cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
-    # Run detection on the image
-    results = model(image)
+    results = model(image, verbose=False)
 
     # Check if anything was detected
     if len(results[0].boxes) > 0:
         consecutive_detections += 1
-        print(f"WOAH - Detection {consecutive_detections}/{DETECTION_THRESHOLD}")
+
+        current_time = time.time()
+
+        print(
+            f"Detection {consecutive_detections}/{DETECTION_THRESHOLD}"
+            if (current_time - last_email_time) > COOLDOWN_PERIOD
+            else "Detected, but cool-down period active"
+        )
 
         # Check if we've reached the threshold and we're not in cooldown period
-        current_time = time.time()
         if (
             consecutive_detections >= DETECTION_THRESHOLD
             and (current_time - last_email_time) > COOLDOWN_PERIOD
         ):
             print("Sending email notification!")
             # Save the image with deer detection
-            image_path = save_image(image, detection=True)
+            # Get image with detection boxes drawn on it
+            annotated_image = results[0].plot()  # Draw detection boxes on the image
+            image_path = save_image(annotated_image)
 
             emails = get_emails()
             send.send_email(emails, image=image)
@@ -91,4 +89,4 @@ while True:
     #     save_image(image)
 
     # Short delay to prevent CPU overload
-    time.sleep(0.1)
+    time.sleep(2)
